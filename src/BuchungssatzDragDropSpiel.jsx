@@ -378,7 +378,7 @@ export default function BuchungssatzDragDropSpiel() {
   }
 
   return (
-    <div className="page">
+    <div className="exercise-app page">
       <div className="wrapper">
         <header className="header">
           <div>
