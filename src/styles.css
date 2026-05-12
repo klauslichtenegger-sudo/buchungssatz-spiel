@@ -230,6 +230,12 @@ h2 {
   gap: 10px;
 }
 
+.drop-slot.can-place {
+  border-color: #2563eb;
+  background: #eff6ff;
+  cursor: pointer;
+}
+
 .drop-slot.is-correct {
   border: 3px solid #16a34a;
   background: #dcfce7;
@@ -310,6 +316,14 @@ h2 {
   font-size: 15px;
   font-weight: 900;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  touch-action: manipulation;
+}
+
+.account-chip.selected {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: white;
+  box-shadow: 0 0 0 4px #bfdbfe;
 }
 
 .feedback,

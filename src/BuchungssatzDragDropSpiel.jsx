@@ -225,6 +225,7 @@ export default function BuchungssatzDragDropSpiel() {
   const [checked, setChecked] = useState(false);
   const [score, setScore] = useState(0);
   const [draggedAccount, setDraggedAccount] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState("");
 
   const current = round[index];
   const isLast = index === round.length - 1;
@@ -246,6 +247,7 @@ export default function BuchungssatzDragDropSpiel() {
     setChecked(false);
     setScore(0);
     setDraggedAccount("");
+    setSelectedAccount("");
   }
 
   function restart() {
@@ -255,6 +257,7 @@ export default function BuchungssatzDragDropSpiel() {
     setChecked(false);
     setScore(0);
     setDraggedAccount("");
+    setSelectedAccount("");
   }
 
   function removeFromSlot(slotName, account) {
@@ -278,12 +281,12 @@ export default function BuchungssatzDragDropSpiel() {
         [slotName]: [...cleaned[slotName], account]
       };
     });
+    setSelectedAccount("");
   }
 
   function placeByClick(account) {
     if (checked) return;
-    const sollNeed = current.solution.soll.length;
-    placeAccount(slots.soll.length < sollNeed ? "soll" : "haben", account);
+    setSelectedAccount((old) => (old === account ? "" : account));
   }
 
   function handleDragStart(account, event) {
@@ -296,6 +299,17 @@ export default function BuchungssatzDragDropSpiel() {
     const account = event.dataTransfer.getData("text/plain") || draggedAccount;
     placeAccount(slotName, account);
     setDraggedAccount("");
+  }
+
+  function handleSlotClick(slotName) {
+    if (checked || !selectedAccount) return;
+    placeAccount(slotName, selectedAccount);
+  }
+
+  function handleSlotKeyDown(slotName, event) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    handleSlotClick(slotName);
   }
 
   function checkAnswer() {
@@ -311,17 +325,18 @@ export default function BuchungssatzDragDropSpiel() {
     setSlots({ soll: [], haben: [] });
     setChecked(false);
     setDraggedAccount("");
+    setSelectedAccount("");
   }
 
   function accountButton(account) {
     return (
       <button
-        className="account-chip"
+        className={selectedAccount === account ? "account-chip selected" : "account-chip"}
         draggable={!checked}
         key={account}
         onClick={() => placeByClick(account)}
         onDragStart={(event) => handleDragStart(account, event)}
-        title="Ziehen oder anklicken"
+        title="Antippen und danach Soll oder Haben wählen"
         type="button"
       >
         {account}
@@ -337,9 +352,13 @@ export default function BuchungssatzDragDropSpiel() {
 
     return (
       <div
-        className={`drop-slot ${correct ? "is-correct" : ""} ${wrong ? "is-wrong" : ""}`}
+        className={`drop-slot ${selectedAccount && !checked ? "can-place" : ""} ${correct ? "is-correct" : ""} ${wrong ? "is-wrong" : ""}`}
+        onClick={() => handleSlotClick(slotName)}
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => handleDrop(slotName, event)}
+        onKeyDown={(event) => handleSlotKeyDown(slotName, event)}
+        role="button"
+        tabIndex={checked || !selectedAccount ? -1 : 0}
       >
         <div className="slot-label">{label}</div>
         {values.length > 0 ? (
@@ -351,7 +370,7 @@ export default function BuchungssatzDragDropSpiel() {
             ))}
           </div>
         ) : (
-          <div className="placeholder">Konto hierher ziehen</div>
+          <div className="placeholder">{selectedAccount && !checked ? `${selectedAccount} hier ablegen` : "Konto hierher ziehen oder antippen"}</div>
         )}
         {checked && wrong ? <div className="mini-correction">Richtig: {correctValues.join(" + ")}</div> : null}
       </div>
@@ -365,7 +384,7 @@ export default function BuchungssatzDragDropSpiel() {
           <div>
             <div className="kicker">Buchführung-Übung mit Umsatzsteuer</div>
             <h1>Buchungssatz bauen</h1>
-            <p>Ziehe die richtigen Konten in die Felder Soll und Haben. Bei Umsatzsteuerfällen können mehrere Konten auf einer Seite stehen.</p>
+            <p>Ziehe die richtigen Konten in die Felder Soll und Haben. Am Handy: Konto antippen, dann Soll oder Haben antippen.</p>
           </div>
           <div className="score-panel" aria-label={`Punktestand ${score} von ${round.length}`}>
             <div className="score-number">{score}/{round.length}</div>
@@ -409,7 +428,7 @@ export default function BuchungssatzDragDropSpiel() {
 
                 <section className="accounts-box">
                   <h3>Kontenauswahl</h3>
-                  <p>Du kannst die Konten ziehen oder anklicken. Mehrere Konten pro Seite sind möglich.</p>
+                  <p>Du kannst Konten ziehen oder antippen. Auf dem Handy wählst du erst ein Konto und danach das passende Feld.</p>
                   <div className="account-grid">{availableAccounts.map(accountButton)}</div>
                 </section>
 
